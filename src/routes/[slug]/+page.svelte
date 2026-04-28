@@ -10,6 +10,9 @@
   import { GLOSSARY } from '$lib/glossary.js';
   import { track, pickTrack, TRACK_LABEL, TRACK_FULL, TRACKS } from '$lib/track.svelte.js';
 
+  // qr is { [track]: { url, svg } } from +page.js — only available client-side
+  // after hydration, but the SVG markup is part of the prerendered HTML.
+
   let { data } = $props();
   let section = $derived(data.section);
   let activeTrack = $derived(track.current);
@@ -114,6 +117,20 @@
       <aside class="eli5">
         <div class="eli5-label">In plain terms</div>
         <p class="eli5-body">{@html md(section.eli5, mdOpts)}</p>
+      </aside>
+    {/if}
+
+    {#if data.qr?.[activeTrack]}
+      {@const active = data.qr[activeTrack]}
+      <aside class="page-qr">
+        <a class="page-qr-link" href={active.url} title={active.url}>
+          <span class="page-qr-svg">{@html active.svg}</span>
+          <span class="page-qr-meta">
+            <span class="page-qr-label">Permalink · {TRACK_LABEL[activeTrack]}</span>
+            <span class="page-qr-url">{active.url.replace(/^https?:\/\//, '')}</span>
+            <span class="page-qr-hint">Scan or tap to share this view in this track</span>
+          </span>
+        </a>
       </aside>
     {/if}
 
@@ -330,6 +347,43 @@
   }
   .eli5-body { font-family: var(--serif); font-weight: 300; font-size: clamp(0.95rem, 1.05vw, 1.05rem); line-height: 1.55; color: var(--ink); }
 
+  .page-qr { grid-column: 2; margin-top: 1.6rem; max-width: 56ch; }
+  .page-qr-link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.1rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--rule);
+    background: rgba(20, 17, 13, 0.02);
+    color: var(--ink);
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+  .page-qr-link:hover { border-color: var(--accent); background: rgba(20, 17, 13, 0.04); }
+  .page-qr-svg :global(svg) { display: block; width: 84px; height: 84px; }
+  .page-qr-meta { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .page-qr-label {
+    font-family: var(--sans);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+  }
+  .page-qr-url {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+  .page-qr-hint {
+    font-family: var(--sans);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+  }
+
   .bottom { font-family: var(--sans); }
 
   .nav {
@@ -360,7 +414,7 @@
 
   @media (max-width: 720px) {
     .body { grid-template-columns: 1fr; gap: 2.5vw; padding: 1.5vw 0; }
-    .number, .title, .gesture, .body-text, .source, .eli5 { grid-column: 1; max-width: none; }
+    .number, .title, .gesture, .body-text, .source, .eli5, .page-qr { grid-column: 1; max-width: none; }
     .title, .gesture, .body-text, .cite, .eli5-body { overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
     .number { font-size: clamp(3rem, 12vw, 5rem); margin-top: 0.2rem; }
     .title { font-size: clamp(1.9rem, 7vw, 3rem); }

@@ -5,6 +5,9 @@ export const TITLE = 'Tree';
 export const AUTHOR = 'Andrew Gauger';
 export const YEAR = 2026;
 
+// Used to encode per-page QR codes (self-URL + ?track=).
+export const SITE_URL = 'https://andygauge.github.io/tree';
+
 // Giscus (GitHub Discussions comments). Open https://giscus.app, select your
 // repo, copy the four ids here. If any is blank, the comment widget simply
 // doesn't render — safe default.
