@@ -1,8 +1,28 @@
 <script>
   import { onNavigate } from '$app/navigation';
+  import { track, TRACKS } from '$lib/track.svelte.js';
   import '../app.css';
 
   let { children } = $props();
+
+  // Reflect the active track on <html data-track="..."> for any CSS hooks.
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.dataset.track = track.current;
+  });
+
+  // Honour ?track=<t> from a shared link. Apply once on mount, then strip
+  // the param so it doesn't follow the user around.
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const t = url.searchParams.get('track');
+    if (t && TRACKS.includes(t)) {
+      track.set(t);
+      url.searchParams.delete('track');
+      window.history.replaceState({}, '', url.toString());
+    }
+  });
 
   onNavigate((navigation) => {
     if (typeof document === 'undefined' || !document.startViewTransition) return;
